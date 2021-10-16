@@ -7,13 +7,15 @@ from typing import List
 from simulation import MCSimulation
 
 
-WRatio = 2                      ## 百分比 止盈率
-LRatio = -2                     ## 百分比 止损率
-WLRatio = 0.5                   ## 胜率
+WRatio = 1                      ## 百分比 止盈率
+LRatio = -1                     ## 百分比 止损率
+WLRatio = 0.5                  ## 胜率
 
 def simu() -> float:
     return (LRatio + (WRatio - LRatio) * np.random.binomial(1, WLRatio)) * 0.01
+    # return (LRatio + (WRatio - LRatio) * np.random.binomial(1, WLRatio)) * 0.01
     # return np.random.uniform(-1, 1) * 0.01
+
 
 class FLAG(Enum):
     LOSS = 0
@@ -44,7 +46,8 @@ class childSim1_0(MCSimulation):
         '''
         随机产生投资收益  暂时使用全局 simu 函数
         '''
-        return np.random.uniform(-1, 1) * 0.01
+        # return np.random.uniform(-1, 1) * 0.01
+        return (LRatio + (WRatio - LRatio) * np.random.binomial(1, WLRatio)) * 0.01
         # return (-2 + 4 * np.random.binomial(1, 0.5)) * 0.01
     
     def game(self) -> List[float]:
@@ -307,8 +310,12 @@ class childSim2(MCSimulation):
 
 if __name__ == '__main__':
 
-    # c  = childSim1_0(100, 0.2, 10000, 100, 3, 2, FLAG.PROFIT)
-    c  = childSim1_1(100, 0.2, 10000, 100, 3, 2, FLAG.PROFIT)
+    c  = childSim1_0(10000, 0.002, 1000, 100, 30, 2, FLAG.LOSS)
+    # c  = childSim1_1(100, 0.2, 10000, 100, 3, 2, FLAG.PROFIT)
     # c  = childSim1_2(100, 0.2, 10000, 100, 2, 2, FLAG.PROFIT)
     # c  = childSim2(100, 0.2, 10000, 100, 3, 10, 2, FLAG.PROFIT)
-    c.getStat()
+    # c.getStat()
+    kws = {'max_contious_buy_cnt': 30, 'winning_rate': WLRatio, 'WRatio': WRatio, 'LRatio': -LRatio, 
+            'multiple': 2, 'flag': FLAG.LOSS, 'total_strategy_num': 20}
+    c.generateDF(20, kws)
+    c.generateGDF(20, 1000, kws)

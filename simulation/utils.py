@@ -39,9 +39,10 @@ def calcPerformance(arr: np.array) -> Performance:
     input: balance series
     '''
     s = pd.Series(arr)
-    pnl = s.diff()
+    rs = s / s.shift(1) - 1
     ms = s.cummax()
     dd = 1 - s / ms
-    p = Performance(pnl.mean(), pnl.std(), np.asarray(dd.cummax()))
-    logging.info('average profit: {:>16.4f}\nstandard deviation: {:>12.4f}\nmax drawdown: {:>18.4f}\n'.format(p.avg, p.std, p.mdd))
+    p = Performance(rs.mean(), rs.std(), np.asarray(dd.cummax()))
+    totalRtn = arr[len(arr) - 1] / arr[0] - 1
+    logging.info('return: {:20.4%}\naverage return: {:>16.4%}\nstandard deviation: {:>12.4f}\nmax drawdown: {:>18.4%}\n'.format(totalRtn, p.avg, p.std, p.mdd))
     return p
