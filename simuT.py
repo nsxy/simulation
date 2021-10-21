@@ -183,8 +183,9 @@ class childSim1_2(MCSimulation):
         '''
         暂时使用全局 simu 函数
         '''
+        return (LRatio + (WRatio - LRatio) * np.random.binomial(1, WLRatio)) * 0.01
         # return np.random.uniform(-1, 1) / 100
-        return (-2 + 4 * np.random.binomial(1, 0.55)) * 0.01
+        # return (-2 + 4 * np.random.binomial(1, 0.55)) * 0.01
     
     def game(self) -> List[float]:
         a = self.balance * self.initPos * simu()
@@ -259,7 +260,8 @@ class childSim2(MCSimulation):
         '''
         暂时使用全局 simu 函数
         '''
-        return np.random.uniform(-1, 1) / 100
+        return (LRatio + (WRatio - LRatio) * np.random.binomial(1, WLRatio)) * 0.01
+        # return np.random.uniform(-1, 1) / 100
     
     def game(self) -> List[float]:
         a = self.balance * self.initPos * simu()
@@ -308,14 +310,82 @@ class childSim2(MCSimulation):
         return ret
 
 
+class SimV3(MCSimulation):
+    def __init__(self, InitBalance: float, InitPos: float, N: int, K: int, X: int) -> None:
+        super().__init__(InitBalance, InitPos, N, K)
+        self.__X = X
+    
+    def simu(self) -> float:
+        return (LRatio + (WRatio - LRatio) * np.random.binomial(1, WLRatio)) * 0.01
+    
+    def game(self) -> List[float]:
+        a = self.balance * self.initPos * simu()
+        balance = self.balance + a
+        pos = self.initPos
+        ret = [a]
+        logging.info('first trade')
+        logging.info('pos: {:.0%}, pnl: {:.2f}, balance: {:.2f}.'.format(pos, a, balance))
+
+        if a > 0:
+            logging.info('return total pnl: {:.2f}'.format(balance - self.balance))
+            return ret
+        
+        pos = self.initPos * self.__X
+        while (True):
+
+            a = self.balance * pos * simu()
+            balance += a
+            ret.append(a)
+            logging.info('pos: {:.0%}, pnl: {:.2f}, balance: {:.2f}.'.format(pos, a, balance))
+
+            if a < 0:
+                pos *= self.__X
+            elif balance > self.balance:
+                logging.info('return total pnl: {:.2f}'.format(balance - self.balance))
+                return ret
+
+
+class SimV4(MCSimulation):
+
+    multi = {1: 0.1, 2: 0.1, 3: 10}
+
+    def __init__(self, InitBalance: float, InitPos: float, N: int, K: int) -> None:
+        super().__init__(InitBalance, InitPos, N, K)
+    
+    def simu(self) -> float:
+        return (LRatio + (WRatio - LRatio) * np.random.binomial(1, WLRatio)) * 0.01
+    
+    def game(self) -> List[float]:
+        a = self.balance * self.initPos * simu()
+        balance = self.balance + a
+        pos = self.initPos
+        ret = [a]
+        logging.info('first trade')
+        logging.info('pos: {:.1%}, pnl: {:.2f}, balance: {:.2f}.'.format(pos, a, balance))
+        
+        cnt = 0
+        while (a < 0):
+            cnt += 1
+            pos *= (SimV4.multi.get(cnt, 2) + 1)
+            a = self.balance * pos * simu()
+            balance += a
+            ret.append(a)
+            logging.info('pos: {:.2%}, pnl: {:.2f}, balance: {:.2f}.'.format(pos, a, balance))
+    
+        logging.info('return total pnl: {:.2f}'.format(balance - self.balance))
+        return ret
+
+
 if __name__ == '__main__':
 
-    c  = childSim1_0(10000, 0.002, 1000, 100, 30, 2, FLAG.LOSS)
-    # c  = childSim1_1(100, 0.2, 10000, 100, 3, 2, FLAG.PROFIT)
-    # c  = childSim1_2(100, 0.2, 10000, 100, 2, 2, FLAG.PROFIT)
-    # c  = childSim2(100, 0.2, 10000, 100, 3, 10, 2, FLAG.PROFIT)
-    # c.getStat()
-    kws = {'max_contious_buy_cnt': 30, 'winning_rate': WLRatio, 'WRatio': WRatio, 'LRatio': -LRatio, 
-            'multiple': 2, 'flag': FLAG.LOSS, 'total_strategy_num': 20}
-    c.generateDF(20, kws)
-    c.generateGDF(20, 1000, kws)
+    # c  = childSim1_0(10000, 0.002, 10000, 100, 30, 2, FLAG.LOSS)
+    # c  = childSim1_1(10000, 0.002, 1000, 100, 3, 2, FLAG.PROFIT)
+    # c  = childSim1_2(10000, 0.002, 1000, 100, 2, 2, FLAG.PROFIT)
+    # c  = childSim2(10000, 0.002, 10000, 100, 10, 20, 2, FLAG.LOSS)
+    # c  = SimV3(10000, 0.002, 1000, 100, 2)
+    c  = SimV4(10000, 0.002, 10000, 100)
+    c.getStat()
+    # kws = {'max_contious_buy_cnt': 2, 'winning_rate': WLRatio, 'WRatio': WRatio, 'LRatio': -LRatio, 
+    #         'multiple': 2, 'flag': FLAG.PROFIT, 'total_strategy_num': 20}
+    # c.generateDF(1, kws)
+    # c.generateGDF(1, 1000, kws)
