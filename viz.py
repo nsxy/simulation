@@ -14,6 +14,7 @@ def load_data(f_path):
 if __name__ == '__main__':
 
     dir = r'data/'
+    img_p = r'img/'
 
     w = {}
     wo = {}
@@ -30,7 +31,9 @@ if __name__ == '__main__':
         plt.plot(sum(map(lambda x:x['balance'][:min_bal] ,w[i]))/len(w[i]), linewidth=1)
         plt.legend(labels=('without','with_douzhuan'))
         plt.title('最大加仓%d' % i)
+        plt.savefig(img_p+'balance%d.png' % i)
         plt.show()
+        
 
     for i in range(15,26):
         min_bac_wo = min(list(map(lambda x:x['back_c'], wo[i])))
@@ -41,4 +44,5 @@ if __name__ == '__main__':
         plt.plot(sum(map(lambda x:x['back'][:min_bac] ,w[i]))/len(w[i]), linewidth=1)
         plt.legend(labels=('without','with_douzhuan'))
         plt.title('最大加仓%d' % i)
+        plt.savefig(img_p+'back%d.png' % i)
         plt.show()
