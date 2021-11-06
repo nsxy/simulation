@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
+from multiprocessing import Pool
 import matplotlib.pyplot as plt
 
 from simulation.utils import calcPerformance
@@ -127,18 +128,38 @@ class MCSimulation(ABC):
         plt.title('Partial MaxDrawDown')
         plt.show()
     
-    def generateGDF(self, cnt: int, rows: int, kwargs: dict) -> pd.DataFrame:
-        
+    def __call__(self, rows: int) -> np.array:
+        n = 0
+        pnl = [self.__balance]
+        while(n < rows):
+            a = self.game()
+            n += len(a)
+            pnl.extend(a)
+        balances = np.cumsum(np.array(pnl[:rows]))
+        return balances
+
+    def generateGDF(self, cnt: int, rows: int, cores: int = 2, kwargs: dict = None) -> pd.DataFrame:
+        '''
+        generate cnt random simulation profit curves(with game), and combined them into one new strategy
+        cnt: num of strategy simulation
+        rows: num of trade
+        cores: num of cpu process
+        kwargs: params of plot
+        '''
         data = []
+        pool = Pool(processes=cores)
         for _ in range(cnt):
-            n = 0
-            pnl = [self.__balance]
-            while(n < rows):
-                a = self.game()
-                n += len(a)
-                pnl.extend(a)
-            balances = np.cumsum(np.array(pnl[:rows]))
-            data.append(balances)
+            data.extend(pool.map(self, (rows, )))
+            # n = 0
+            # pnl = [self.__balance]
+            # while(n < rows):
+            #     a = self.game()
+            #     n += len(a)
+            #     pnl.extend(a)
+            # balances = np.cumsum(np.array(pnl[:rows]))
+            # data.append(balances)
+        pool.close()
+        pool.join()
         ret = pd.DataFrame(data).T
         cols = ['strategy{}'.format(i) for i in range(cnt)]
         ret.columns = cols
@@ -149,7 +170,6 @@ class MCSimulation(ABC):
         ret.columns = cols
         ret.apply(calcPerformance)
 
-        # plt.figure(2)
         _, axes = plt.subplots(2, 1, sharex=True)
         params = 'initiative balance: {}, initiative position: {:.2%}, winning_rate: {:.0%}, WRatio/LRatio: {}/{}\nmax continous buy cnt: {}, flag: {}, total_strategy_num: {}.'.format(self.balance,
                     self.initPos, kwargs.get('winning_rate', 0), kwargs.get('WRatio', 0), kwargs.get('LRatio', 0), 
@@ -161,7 +181,9 @@ class MCSimulation(ABC):
         return ret
 
     def generateDF(self, cnt: int, kwargs: dict) -> pd.DataFrame:
-
+        '''
+        generate cnt random simulation profit curves(no game), and combined them into one new strategy
+        '''
         data = []
         for _ in range(cnt):
             pnls = self.balance * self.initPos *  np.array([self.simu() for _ in range(self.__totalCount)])
@@ -185,5 +207,5 @@ class MCSimulation(ABC):
         ret.plot(grid='on', ax=axes[0], title='all strategys\n' + params, legend=False)
         # axes[0].legend(ncol=5, loc='best')
         ret[['strategyM']].plot(grid='on', ax=axes[1], title='combined strategy')
-        # plt.show()
+        plt.show()
         return ret
