@@ -378,14 +378,14 @@ class SimV4(MCSimulation):
 
 if __name__ == '__main__':
 
-    # c  = childSim1_0(10000, 0.002, 10000, 100, 30, 2, FLAG.LOSS)
+    c  = childSim1_0(10000, 0.002, 10000, 100, 30, 2, FLAG.LOSS)
     # c  = childSim1_1(10000, 0.002, 1000, 100, 3, 2, FLAG.PROFIT)
     # c  = childSim1_2(10000, 0.002, 1000, 100, 2, 2, FLAG.PROFIT)
     # c  = childSim2(10000, 0.002, 10000, 100, 10, 20, 2, FLAG.LOSS)
     # c  = SimV3(10000, 0.002, 1000, 100, 2)
-    c  = SimV4(10000, 0.002, 10000, 100)
-    c.getStat()
-    # kws = {'max_contious_buy_cnt': 2, 'winning_rate': WLRatio, 'WRatio': WRatio, 'LRatio': -LRatio, 
-    #         'multiple': 2, 'flag': FLAG.PROFIT, 'total_strategy_num': 20}
-    # c.generateDF(1, kws)
-    # c.generateGDF(1, 1000, kws)
+    # c  = SimV4(10000, 0.002, 10000, 100)
+    # c.getStat()
+    kws = {'max_contious_buy_cnt': 2, 'winning_rate': WLRatio, 'WRatio': WRatio, 'LRatio': -LRatio, 
+            'multiple': 2, 'flag': FLAG.PROFIT, 'total_strategy_num': 20}
+    # c.generateDF(20, kws)
+    c.generateGDF(20, 10000, 2, kws)

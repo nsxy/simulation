@@ -207,5 +207,4 @@ class MCSimulation(ABC):
         ret.plot(grid='on', ax=axes[0], title='all strategys\n' + params, legend=False)
         # axes[0].legend(ncol=5, loc='best')
         ret[['strategyM']].plot(grid='on', ax=axes[1], title='combined strategy')
-        plt.show()
         return ret
