@@ -44,5 +44,5 @@ def calcPerformance(arr: np.array) -> Performance:
     dd = 1 - s / ms
     p = Performance(rs.mean(), rs.std(), np.asarray(dd.cummax()))
     totalRtn = arr[len(arr) - 1] / arr[0] - 1
-    logging.info('return: {:20.4%}\naverage return: {:>16.4%}\nstandard deviation: {:>12.4f}\nmax drawdown: {:>18.4%}\n'.format(totalRtn, p.avg, p.std, p.mdd))
+    logging.warning('\nreturn: {:20.4%}\naverage return: {:>16.4%}\nstandard deviation: {:>12.4f}\nmax drawdown: {:>18.4%}\n'.format(totalRtn, p.avg, p.std, p.mdd))
     return p

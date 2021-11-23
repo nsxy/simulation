@@ -13,4 +13,4 @@ filter the log level below INFO level
 '''
 LOG_FORMAT = '%(asctime)s [%(levelname)s] [%(filename)s:%(lineno)d] [%(funcName)s] %(message)s'
 FILE_NAME = '{}.log'.format(datetime.now().strftime('%m%d.%H%M%S.%f'))
-logging.basicConfig(filename=FILE_NAME, level=logging.INFO, format=LOG_FORMAT)
+logging.basicConfig(filename=FILE_NAME, level=logging.WARNING, format=LOG_FORMAT)
