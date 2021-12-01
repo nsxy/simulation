@@ -145,11 +145,12 @@ class MCSimulation(ABC):
         rows: num of trade
         cores: num of cpu process
         kwargs: params of plot
-        '''
+
         data = []
         pool = Pool(processes=cores)
         for _ in range(cnt):
             data.extend(pool.map(self, (rows, )))
+        '''
             # n = 0
             # pnl = [self.__balance]
             # while(n < rows):
@@ -158,6 +159,8 @@ class MCSimulation(ABC):
             #     pnl.extend(a)
             # balances = np.cumsum(np.array(pnl[:rows]))
             # data.append(balances)
+        pool = Pool(processes=cores)
+        data = pool.map(self, [rows for _ in range(cnt)]
         pool.close()
         pool.join()
         ret = pd.DataFrame(data).T
