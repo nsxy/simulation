@@ -6,9 +6,12 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pandas as pd
 from multiprocessing import Pool
+#import matplotlib as mpl
+#mpl.use('Tkagg')
 import matplotlib.pyplot as plt
 
 from simulation.utils import calcPerformance
+
 
 
 class MCSimulation(ABC):
@@ -130,6 +133,7 @@ class MCSimulation(ABC):
     
     def __call__(self, rows: int) -> np.array:
         n = 0
+        print('start to call.')
         pnl = [self.__balance]
         while(n < rows):
             a = self.game()
@@ -150,7 +154,6 @@ class MCSimulation(ABC):
         pool = Pool(processes=cores)
         for _ in range(cnt):
             data.extend(pool.map(self, (rows, )))
-        '''
             # n = 0
             # pnl = [self.__balance]
             # while(n < rows):
@@ -159,10 +162,14 @@ class MCSimulation(ABC):
             #     pnl.extend(a)
             # balances = np.cumsum(np.array(pnl[:rows]))
             # data.append(balances)
-        pool = Pool(processes=cores)
-        data = pool.map(self, [rows for _ in range(cnt)]
         pool.close()
         pool.join()
+        '''
+        pool = Pool(processes=cores)
+        data = pool.map(self, [rows for _ in range(cnt)])
+        pool.close()
+        pool.join()
+        print('done')
         ret = pd.DataFrame(data).T
         cols = ['strategy{}'.format(i) for i in range(cnt)]
         ret.columns = cols
@@ -174,13 +181,17 @@ class MCSimulation(ABC):
         ret.apply(calcPerformance)
 
         _, axes = plt.subplots(2, 1, sharex=True)
-        params = 'initiative balance: {}, initiative position: {:.2%}, winning_rate: {:.0%}, WRatio/LRatio: {}/{}\nmax continous buy cnt: {}, flag: {}, total_strategy_num: {}.'.format(self.balance,
-                    self.initPos, kwargs.get('winning_rate', 0), kwargs.get('WRatio', 0), kwargs.get('LRatio', 0), 
-                    kwargs.get('max_contious_buy_cnt', 0), kwargs.get('flag', None), kwargs.get('total_strategy_num', None))
+        params = ''
+        if kwargs:
+            params = 'initiative balance: {}, initiative position: {:.2%}, winning_rate: {:.0%}, WRatio/LRatio: {}/{}\nmax continous buy cnt: {}, flag: {}, total_strategy_num: {}.'.format(self.balance,
+                        self.initPos, kwargs.get('winning_rate', 0), kwargs.get('WRatio', 0), kwargs.get('LRatio', 0), 
+                        kwargs.get('max_contious_buy_cnt', 0), kwargs.get('flag', None), kwargs.get('total_strategy_num', None))
+        # fig = plt.figure(figsize=(29, 16))
         ret.plot(grid='on', ax=axes[0], title='all game strategys\n' + params, legend=False)
         # axes[0].legend(ncol=5, loc='best')
         ret[['strategyM']].plot(grid='on', ax=axes[1], title='combined game strategy')
         plt.show()
+        # plt.savefig('test.png', dpi=500, bbox_inches='tight')
         return ret
 
     def generateDF(self, cnt: int, kwargs: dict) -> pd.DataFrame:
